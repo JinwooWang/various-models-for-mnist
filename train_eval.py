@@ -40,8 +40,7 @@ def train(checkpoint = None):
                                                  feed_dict = {X:batch[0].reshape([-1, 28, 28, 1]), Y:batch[1]})
                 summary_writer.add_summary(summary, iteration)
                 print(accuracy)
-                if i > 10 and i % 10 == 1:
-                    saver.save(sess, save_path = model_directory + str(e) + ".ckpt")
+            saver.save(sess, save_path = model_directory + str(e) + ".ckpt")
 
 def test(checkpoint = model_directory):
     X = tf.placeholder("float", [None, 28, 28, 1], "X")
