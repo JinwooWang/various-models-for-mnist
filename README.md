@@ -1,2 +1,2 @@
 # various-models-for-mnist
-Contains ResNet50 and vanilla CNN
+Contains ResNet50 and vanilla CNN.
