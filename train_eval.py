@@ -23,7 +23,7 @@ def trainResnet(checkpoint = None):
     train_op = tf.train.AdamOptimizer(1e-3).minimize(loss)
     pred = tf.argmax(output_Y, 1)
     acc = tf.reduce_mean(tf.cast(tf.equal(pred, tf.argmax(Y, 1)), "float"))
-
+    print(tf.trainable_variables())
     summary_loss = tf.summary.scalar("loss", loss)
     saver = tf.train.Saver(max_to_keep = 5)
 
@@ -55,15 +55,21 @@ def trainCNN(checkpoint = None):
 
     cnn = CNN(X, 10, keep_prob)
     output_Y = cnn.model()
+
+    global_step = tf.Variable(0)
+    learning_rate = tf.train.exponential_decay(0.001, global_step, 100, 0.96, staircase = True)
+    l2_loss = tf.losses.get_regularization_loss()
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = output_Y, labels = Y))
-    train_op = tf.train.AdamOptimizer(1e-3).minimize(loss)
+    loss += l2_loss
+    train_op = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step = global_step)
     acc = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(output_Y, 1), tf.argmax(Y, 1)), "float"))
 
+    summary_lr = tf.summary.scalar("learning_rate", learning_rate)
     summary_loss = tf.summary.scalar("loss", loss)
     saver = tf.train.Saver(max_to_keep = 5)
     merged_summary_op = tf.summary.merge_all()
 
-    epochs = 2
+    epochs = 5
     batch_size = 50
     iteration = 0
 
@@ -92,6 +98,7 @@ def test_resnet(checkpoint = resnet_model_directory):
     output_Y = resnet.model()
     acc = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(output_Y, 1), tf.argmax(Y, 1)), "float"))
     saver = tf.train.Saver()
+    print(tf.trainable_variables())
 
     with tf.Session(config = tf.ConfigProto(gpu_options = tf.GPUOptions(allow_growth = True))) as sess:
         sess.run(tf.initialize_all_variables())
@@ -106,6 +113,7 @@ def test_cnn(checkpoint = cnn_model_directory):
 
     cnn = CNN(X, 10, keep_prob)
     output_Y = cnn.model()
+    print(tf.trainable_variables())
     acc = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(output_Y, 1), tf.argmax(Y, 1)), "float"))
     saver = tf.train.Saver()
 
@@ -116,7 +124,7 @@ def test_cnn(checkpoint = cnn_model_directory):
     print(accuracy)
 
 if __name__ == "__main__":
-    #train()
-    #test()
+    #trainResnet()
+    #test_resnet()
     #trainCNN()
     test_cnn()
